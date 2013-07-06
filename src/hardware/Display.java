@@ -14,6 +14,11 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
+/**
+ * 
+ * @author Richard Yang
+ *
+ */
 public class Display extends JComponent{
 
 	/**

@@ -7,6 +7,11 @@ import hardware.CPU;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 
+/**
+ * 
+ * @author Richard Yang
+ *
+ */
 public class GameMenuBar extends JMenuBar{
 
 	

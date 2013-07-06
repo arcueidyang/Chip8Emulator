@@ -6,16 +6,31 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Random;
 
+/**
+ * 
+ * @author Richard Yang
+ *
+ */
 public class CPU implements Runnable{
-	
-	public static final String GAME_VERSION = "1.0";
-	
+	/**
+	 * the version of this emulator
+	 */
+	public static final String EMULATOR_VERSION = "1.0";
+	/**
+	 * default path of roms
+	 */
 	public static final String DEFAULT_PATH = "./roms/";
-	
+	/**
+	 * default sleep time of threads
+	 */
 	private static final int SLEEP_TIME = 20;
-	
+	/**
+	 * start position of the 4KB memory
+	 */
 	private static final int MEMORY_START = 0x0200;
-	
+	/**
+	 * start position of the stack pointer
+	 */
 	private static final int STACK_POINTER_START = 0x01E0;
 	
 	//the memory, 4k in total
@@ -33,13 +48,18 @@ public class CPU implements Runnable{
 	//program counter, from 0x000 to 0xFFF
 	private int pc;
 	
+	//the display
 	private Display myDisplay;
 	
+	//delay timer 
 	private char delayTimer;
 
+	//sound timer
 	private char soundTimer;
 	
+	//period 
 	private int period;
+	// a full period, when periond reach this value, we refresh the timer
 	private int fullPeriod;
 	
 	//stack pointer 
@@ -60,13 +80,17 @@ public class CPU implements Runnable{
 	//last different key pressed
 	private char currentKeyPressed;
 	
+	//whether the thread is running
 	private boolean isRunning;
 	
+	//main thread 
 	private Thread CPUThread;
 	
+	//random generator
 	private Random myRandom;
 	
-	 private final char[] Font =  {
+	//font of chip-8
+	private final char[] Font =  {
 		      0xf9,0x99,0xf2,0x62,0x27,
 		      0xf1,0xf8,0xff,0x1f,0x1f,
 		      0x99,0xf1,0x1f,0x8f,0x1f,
@@ -83,6 +107,7 @@ public class CPU implements Runnable{
 		0x07,0x08,0x09,0x0E,
 		0x0A,0x00,0x0B,0x0F };
 	
+	//inversed key map
 	private final byte[] keyUnMap = {
 		0x0D,0x00,0x01,0x02,
 		0x04,0x05,0x06,0x08,
@@ -98,7 +123,9 @@ public class CPU implements Runnable{
 		
 		init();
 	}
-	
+	/**
+	 * initialize all the states, pointers and other instance variables
+	 */
 	public void init() {
 		pc = MEMORY_START;
 		opCode = 0;
@@ -114,6 +141,9 @@ public class CPU implements Runnable{
 		
 	}
 	
+	/**
+	 * start the CPU thread
+	 */
 	public void startThread() {
 		if(CPUThread == null) {
 			isRunning = true;
@@ -122,32 +152,47 @@ public class CPU implements Runnable{
 		}
 	}
 	
+	/**
+	 * suspend the thread
+	 */
 	public void suspendThread() {
 		CPUThread.suspend();
 	}
-	
+	/**
+	 * resume the thread
+	 */
 	public void resumeThread() {
 		CPUThread.resume();
 	}
-	
+	/**
+	 * stop the thread
+	 */
 	public void stopThread() {
 		isRunning = false;
 		CPUThread = null;
 	}
  
-	
+	/**
+	 * load all the fonts into memory
+	 */
 	public void loadFontSet() {
 		for(int i=0; i<40; i++) {
 	         memory[i << 1] = (char)(Font[i] & 0xf0);
 	         memory[(i << 1) + 1] = (char)((Font[i] << 4) & 0xf0);
 	      }
 	}
-	
+	/**
+	 * reset delay timer and sound timer
+	 */
 	public void resetTimers() {
 		delayTimer = '0';
 		soundTimer = '0';
 	}
 	
+	/**
+	 * load rom file into the emulator
+	 * @param gameFile game file
+	 */
 	public void load(File gameFile) {
 		FileInputStream stream;
 		try {
@@ -162,12 +207,16 @@ public class CPU implements Runnable{
 		}
 		
 	}
-	
+	/**
+	 * load rom file based on name
+	 * @param fileName
+	 */
 	public void load(String fileName) {
 		File gameFile = new File(DEFAULT_PATH + fileName);
 		load(gameFile);
 	}
 	
+	//run emulator
 	public void execute() {
 		emulateCycle();
 		
@@ -192,7 +241,7 @@ public class CPU implements Runnable{
 			lastKeyPressed = 0xFF;
 		}
 		
-		timing();
+		refreshTimer();
 		
 	}
 	
@@ -424,6 +473,12 @@ public class CPU implements Runnable{
 			}
 				
 			case 0x1E: {
+				/**
+				 *  VF is set to 1 when range overflow (I+VX>0xFFF), and 0 when there isn't.
+				 *  This is undocumented feature of the Chip-8 and used by Spacefight 2019! game.
+				 *  see wikipedia: http://en.wikipedia.org/wiki/CHIP-8
+				 */
+				
 				//V[15] = (char)((indexRegister + V[opCode2]) > 0x0FFF ? 0x01 : 0x00); 
 				indexRegister = (indexRegister +  V[opCode2]) & 0x0FFF;
 				pc += 2;
@@ -471,7 +526,7 @@ public class CPU implements Runnable{
 		
 	}
 	
-	public void timing() {
+	public void refreshTimer() {
 		period ++;
 		
 		if(period == fullPeriod) {

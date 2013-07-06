@@ -7,6 +7,11 @@ import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
 
+/**
+ * 
+ * @author Richard Yang
+ *
+ */
 public class Chip8 {
 	
 	public static final String NAME = "Chip-8 Emulator";
