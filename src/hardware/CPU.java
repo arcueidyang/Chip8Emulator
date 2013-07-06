@@ -8,11 +8,15 @@ import java.util.Random;
 
 public class CPU implements Runnable{
 	
+	public static final String GAME_VERSION = "1.0";
+	
 	public static final String DEFAULT_PATH = "./roms/";
 	
-	public static final int SLEEP_TIME = 10;
+	private static final int SLEEP_TIME = 20;
 	
 	private static final int MEMORY_START = 0x0200;
+	
+	private static final int STACK_POINTER_START = 0x01E0;
 	
 	//the memory, 4k in total
 	private char[] memory;
@@ -96,10 +100,10 @@ public class CPU implements Runnable{
 	}
 	
 	public void init() {
-		pc = 0x0200;
+		pc = MEMORY_START;
 		opCode = 0;
 		indexRegister = 0;
-		sp = 0x01E0;
+		sp = STACK_POINTER_START;
 		period = 0;
 		fullPeriod = 25;
 		
@@ -116,6 +120,14 @@ public class CPU implements Runnable{
 			CPUThread = new Thread(this);
 			CPUThread.start();
 		}
+	}
+	
+	public void suspendThread() {
+		CPUThread.suspend();
+	}
+	
+	public void resumeThread() {
+		CPUThread.resume();
 	}
 	
 	public void stopThread() {
@@ -156,7 +168,7 @@ public class CPU implements Runnable{
 		load(gameFile);
 	}
 	
-	public void trace() {
+	public void execute() {
 		emulateCycle();
 		
 		updateOpCode();
@@ -473,7 +485,7 @@ public class CPU implements Runnable{
 			}
 			
 			try {
-				CPUThread.sleep(20);
+				CPUThread.sleep(SLEEP_TIME);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -505,10 +517,7 @@ public class CPU implements Runnable{
 	@Override
 	public void run() {
 		while(isRunning) {
-			trace();
+			execute();
 		}
 	}
-	
-	
-	
 }

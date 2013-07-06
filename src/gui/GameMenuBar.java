@@ -12,12 +12,13 @@ public class GameMenuBar extends JMenuBar{
 	
 	private JMenu fileMenu;
 	private JMenu optionMenu;
-	
+	private JMenu helpMenu;
 	
 	public GameMenuBar(CPU cpu) {
 		super();
 		createFileMenu(cpu);
 		createOptionMenu();
+		createHelpMenu();
 	}
 	
 	private void createFileMenu(CPU cpu) {
@@ -27,7 +28,15 @@ public class GameMenuBar extends JMenuBar{
 	}
 	
 	private void createOptionMenu() {
-			
+		optionMenu = new JMenu("Option");
+	    optionMenu.setMnemonic(KeyEvent.VK_O);
+	    add(optionMenu);
+	}
+	
+	private void createHelpMenu() {
+		helpMenu = new HelpMenu();
+		helpMenu.setMnemonic(KeyEvent.VK_H);
+		add(helpMenu);
 	}
 	
 }

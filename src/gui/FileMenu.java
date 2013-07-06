@@ -10,7 +10,13 @@ import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 
+/**
+ * 
+ * @author Richard Yang
+ *
+ */
 public class FileMenu extends JMenu {
 
 	/**
@@ -21,6 +27,9 @@ public class FileMenu extends JMenu {
 	
 	private JMenuItem loadItem;
 	private JMenuItem startItem;
+	private JMenuItem pauseItem;
+	private JMenuItem resumeItem;
+	private JMenuItem closeItem;
 	private CPU myCPU;
 	
 	public FileMenu(CPU cpu) {
@@ -28,6 +37,9 @@ public class FileMenu extends JMenu {
 		myCPU = cpu;
 		createLoadItem();
 		createStartItem();
+		createPauseItem();
+		createResumeItem();
+		createCloseItem();
 	}
 	
 	private void createLoadItem() {
@@ -38,6 +50,8 @@ public class FileMenu extends JMenu {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				myCPU.stopThread();
+				myCPU.init();
 				JFileChooser fileChooser = getFileChooser(CPU.DEFAULT_PATH);
 				fileChooser.showDialog(loadItem, "Load");
 			}
@@ -47,7 +61,7 @@ public class FileMenu extends JMenu {
 	}
 	
 	private void createStartItem() {
-	    startItem = new JMenuItem("start");
+	    startItem = new JMenuItem("Start");
 	    startItem.setMnemonic(KeyEvent.VK_S);
 	    
 	    ActionListener listener = new ActionListener() {
@@ -62,6 +76,56 @@ public class FileMenu extends JMenu {
 	    add(startItem);
 	}
 	
+	private void createPauseItem() {
+		pauseItem = new JMenuItem("Pause");
+	    pauseItem.setMnemonic(KeyEvent.VK_P);
+	    ActionListener listener = new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				myCPU.suspendThread();
+			}
+	    };
+	    pauseItem.addActionListener(listener);
+	    add(pauseItem);
+	}
+	
+	private void createResumeItem() {
+		resumeItem = new JMenuItem("Resume");
+	    resumeItem.setMnemonic(KeyEvent.VK_R);
+	    ActionListener listener = new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				myCPU.resumeThread();
+			}
+	    };
+	    resumeItem.addActionListener(listener);
+	    add(resumeItem);		
+	}
+	
+	private void createCloseItem() {
+		closeItem = new JMenuItem("Close");
+		closeItem.setMnemonic(KeyEvent.VK_C);
+		
+		ActionListener closeActionListener = new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				myCPU.suspendThread();
+				int response = JOptionPane.showOptionDialog(closeItem, "DO YOU REALLY WANT TO CLOSE THIS GAME?", 
+						                      "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+				
+				if(response == 0) {
+					System.exit(0);
+				}else if(response == 1) {
+					myCPU.resumeThread();
+				}
+			}
+		};
+		closeItem.addActionListener(closeActionListener);
+		add(closeItem);
+	}
+	
+	
 	private JFileChooser getFileChooser(String relativePath) {
 		JFileChooser chooser = new JFileChooser(relativePath);
 		chooser.setControlButtonsAreShown(true);
@@ -75,7 +139,6 @@ public class FileMenu extends JMenu {
 			    if(command == JFileChooser.APPROVE_SELECTION) {
 			    	File selectedFile = theFileChooser.getSelectedFile();	
 			        myCPU.load(selectedFile);
-			        myCPU.startThread();
 			    }
 			}
 		};
